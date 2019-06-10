@@ -1,0 +1,15 @@
+Area:
+  code: areacode
+  name: areaname
+CategoryLarge:
+  query: category_l
+  code: category_l_code
+  name: category_l_name
+GAreaLarge:
+  query: areacode_l
+  code: areacode_l
+  name: areaname_l
+GAreaMiddle:
+  query: areacode_m
+  code: areacode_m
+  name: areaname_m
