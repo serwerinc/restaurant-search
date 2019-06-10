@@ -51,7 +51,9 @@ class RestaurantTable:
         self.df = df
         self.query = query
 
-    def to_csv(self, ja=False):
+    def to_csv(self, ja=False, excel=False):
+        if excel:
+            self.delete_line_feed_code()
         file_name = datetime.now().strftime("%Y%m%d")
         for key, value in self.query.items():
             mt = MasterTable.get_master_table(key)
@@ -61,8 +63,9 @@ class RestaurantTable:
                 file_name += "_" + value
         self.df.to_csv("results/" + file_name + ".csv")
 
-    def delete_lf(self):
-        self.df = self.df.apply(lambda d: if is_str(d): d.str.strip())
+    def delete_line_feed_code(self):
+        self.df = self.df.astype(str)
+        self.df = self.df.applymap(lambda d: d.replace("\n", " "))
 
 
 class GrunaviAPI:
@@ -123,4 +126,4 @@ if __name__ == "__main__":
     target_area = list(df[df["pref.pref_name"].str.contains("東京")].head(15).areacode_l)
     for areacode_l in target_area:
         rt = ga.search_all(category_l="RSFST11000", areacode_l=areacode_l)
-        rt.to_csv(ja=True)
+        rt.to_csv(ja=True, excel=True)
