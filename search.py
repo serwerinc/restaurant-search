@@ -6,6 +6,7 @@ import time
 from datetime import datetime
 import os
 import yaml
+import sys  # モジュール属性 argv を取得するため
 
 f = open("master/columns.yml", "r+")
 MASTER_COLUMNS = yaml.load(f, Loader=yaml.FullLoader)
@@ -62,6 +63,7 @@ class RestaurantTable:
             else:
                 file_name += "_" + value
         self.df.to_csv("results/" + file_name + ".csv")
+        return "results/" + file_name + ".csv"
 
     def delete_line_feed_code(self):
         self.df = self.df.astype(str)
@@ -109,6 +111,10 @@ class GrunaviAPI:
 
 
 if __name__ == "__main__":
+    if len(sys.argv) != 2:  # 引数が足りない場合は、その旨を表示
+        print("引数にカテゴリ番号を設定してください ex) RSFST01000")
+        quit()  # プログラムの終了
+
     ga = GrunaviAPI(os.getenv("GURUNAVI_API_KEY"))
     master_list = [
         "Area",
@@ -125,5 +131,6 @@ if __name__ == "__main__":
     df = pd.read_csv("master/GAreaLarge.csv")
     target_area = list(df[df["pref.pref_name"].str.contains("東京")].head(15).areacode_l)
     for areacode_l in target_area:
-        rt = ga.search_all(category_l="RSFST11000", areacode_l=areacode_l)
-        rt.to_csv(ja=True, excel=True)
+        rt = ga.search_all(category_l=sys.argv[1], areacode_l=areacode_l)
+        res = rt.to_csv(ja=True, excel=True)
+        print("create: " + res)

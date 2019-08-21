@@ -1,6 +1,6 @@
 .envrc
 .ipynb_checkpoints
-results.zip
+*.zip
 /results/*
 !/results/.keep
 __pycache__
