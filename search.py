@@ -98,7 +98,10 @@ class GrunaviAPI:
         keys = list(r)
         if count_hits:
             return int(json.loads(r.text)["total_hit_count"])
-        return pd.io.json.json_normalize(json.loads(r.text)["rest"])
+        try:
+            return pd.io.json.json_normalize(json.loads(r.text)["rest"])
+        except:
+            return pd.DataFrame()
 
     def master_search(self, name):
         url = f"https://api.gnavi.co.jp/master/{s}SearchAPI/v3/?keyid={ga.api_key}"
@@ -129,7 +132,7 @@ if __name__ == "__main__":
     #     ga.master_search(s)
 
     df = pd.read_csv("master/GAreaLarge.csv")
-    target_area = list(df[df["pref.pref_name"].str.contains("東京")].head(15).areacode_l)
+    target_area = list(df[df["pref.pref_name"].str.contains("東京")].areacode_l)
     for areacode_l in target_area:
         rt = ga.search_all(category_l=sys.argv[1], areacode_l=areacode_l)
         res = rt.to_csv(ja=True, excel=True)
