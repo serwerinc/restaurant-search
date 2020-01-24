@@ -79,6 +79,8 @@ class GrunaviAPI:
 
     def search_all(self, **params):
         pages = self.search(params, count_hits=True) // self.hit_per_page + 1
+        if pages == 0:
+            return None
         params_with_hit_pages = params.copy()
         params_with_hit_pages["hit_per_page"] = self.hit_per_page
         for offset_page in range(1, pages + 1):
@@ -102,7 +104,7 @@ class GrunaviAPI:
             if "total_hit_count" in json.loads(r.text):
                 return int(json.loads(r.text)["total_hit_count"])
             else:
-                raise ValueError(json.loads(r.text))
+                return 0
         try:
             return pd.io.json.json_normalize(json.loads(r.text)["rest"])
         except:
@@ -146,6 +148,7 @@ if __name__ == "__main__":
     with tqdm(total=len(target_category) * len(target_area)) as pbar:
         for category_l, areacode_l in product(target_category, target_area):
             rt = ga.search_all(category_l=category_l, areacode_l=areacode_l)
-            res = rt.to_csv(ja=True, excel=True)
             pbar.update()
-            # print("create: " + res)
+            if not rt:
+                continue
+            res = rt.to_csv(ja=True, excel=True)
