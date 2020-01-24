@@ -7,6 +7,8 @@ from datetime import datetime
 import os
 import yaml
 import sys  # モジュール属性 argv を取得するため
+from tqdm import tqdm
+from itertools import product
 
 f = open("master/columns.yml", "r+")
 MASTER_COLUMNS = yaml.load(f, Loader=yaml.FullLoader)
@@ -97,7 +99,10 @@ class GrunaviAPI:
         r = requests.get(url)
         keys = list(r)
         if count_hits:
-            return int(json.loads(r.text)["total_hit_count"])
+            if "total_hit_count" in json.loads(r.text):
+                return int(json.loads(r.text)["total_hit_count"])
+            else:
+                raise ValueError(json.loads(r.text))
         try:
             return pd.io.json.json_normalize(json.loads(r.text)["rest"])
         except:
@@ -132,8 +137,15 @@ if __name__ == "__main__":
     #     ga.master_search(s)
 
     df = pd.read_csv("master/GAreaLarge.csv")
-    target_area = list(df[df["pref.pref_name"].str.contains("東京")].areacode_l)
-    for areacode_l in target_area:
-        rt = ga.search_all(category_l=sys.argv[1], areacode_l=areacode_l)
-        res = rt.to_csv(ja=True, excel=True)
-        print("create: " + res)
+    target_area = list(df[df["pref.pref_name"].str.contains('神奈川')].areacode_l)
+    if sys.argv[1] == 'all':
+        df_category = pd.read_csv("master/CategoryLarge.csv")
+        target_category = df_category.category_l_code.tolist()
+    else:
+        target_category = [sys.argv[1]]
+    with tqdm(total=len(target_category) * len(target_area)) as pbar:
+        for category_l, areacode_l in product(target_category, target_area):
+            rt = ga.search_all(category_l=category_l, areacode_l=areacode_l)
+            res = rt.to_csv(ja=True, excel=True)
+            pbar.update()
+            # print("create: " + res)
